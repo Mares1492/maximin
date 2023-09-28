@@ -1,0 +1,81 @@
+body {
+    font-family: 'Open Sans', sans-serif; /* Use Open Sans as the font */
+    margin: 0;
+    padding: 0;
+    background-color: #f0f0f0; /* Background color for the body */
+}
+
+h1 {
+    text-align: center;
+    margin: 20px;
+    color: #333;
+}
+
+#game-container {
+    width: 80%;
+    margin: 0 auto;
+    padding: 20px;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+}
+
+#game-grid {
+    display: grid;
+    max-width: 100%;
+    grid-template-columns: repeat(9, 1fr);
+    grid-template-rows: repeat(9, 1fr);
+    
+}
+
+#game-grid div {
+    box-sizing: border-box;
+    padding: 0.8rem;
+    text-align: center;
+    font-size: 1.5em;
+    border: 1px solid #ccc;
+    cursor: pointer;
+}
+
+/*.grid-cell{
+    
+}*/
+
+.grid-cell:hover {
+    transition: all 0.3s ease;
+}
+
+#status {
+    margin-top: 20px;
+    font-size: 1.2em;
+}
+
+#controls {
+    text-align: center;
+    margin: 20px;
+}
+
+label {
+    font-weight: bold;
+    color: #333;
+}
+
+#board-size {
+    padding: 5px;
+    font-size: 16px;
+}
+
+#start-button {
+    padding: 10px 20px;
+    font-size: 18px;
+    background-color: #90f6e5; /* Blue button color */
+    color: #090909;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.3s ease-in;
+}
+
+#start-button:hover {
+    background-color: #71cfc4; /* Darker blue on hover */
+}
+
