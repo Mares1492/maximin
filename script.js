@@ -3,24 +3,50 @@ const startButton = document.getElementById("start-button");
 const statusDisplay = document.getElementById("status");
 const gameContainer = document.getElementById("game-container");
 const gameGrid = document.getElementById("game-grid"); // Reference to the game grid table
+const p1Score = document.getElementById("p1Score")
+const p2Score = document.getElementById("p2Score")
 
 const ALLOWED_CELLS = ['F','0','+']
 
 let boardSize = 9; // Default board size
 let currentPlayer = 1; // Player 1 starts
-let p1Position = 0;
-let p2Position = 1;
+let player1 = {
+    position: 0,
+    points:0
+}
+let player2 = {
+    position: 0,
+    points :0
+}
 let targetCell = 0; // Initialize target cell
 let gameBoard = []; // Declare the gameBoard variable
 let isEnd = false;
 let globalPathArray = []
 let turn = 0;
 
+
+function handleBonus(bIndex){
+    let el = gameBoard[bIndex]
+    el.color = "black";
+    if(currentPlayer===1){
+        player1.points++
+        p1Score.textContent = player1.points
+    }
+    else{
+        player2.points++
+        p2Score.textContent = player2.points
+    }
+}
+
 function scanEffect(index,timeout,color = "yellow",withColor = true){
     let bgColor = gameBoard[index].style.backgroundColor;
+    gameBoard[index].style.color = "black";
     if(withColor){
         gameBoard[index].style.boxShadow = "0 0 40px rgba(255, 255, 0, 0.7)";
         gameBoard[index].style.backgroundColor = color; // Change the background color
+        if (gameBoard[index].textContent === '+'){
+            gameBoard[index].style.color = "gold";
+        }
     }
     else
     {
@@ -79,7 +105,7 @@ function buildPath(pathArray) {
     for (const index of possibleSteps) {
         if (index > 0 && index < gameBoard.length - 1){
             scanEffect(index,150*pathArray.length,"transparent",false)  
-            if(gameBoard[index].textContent === '0' || index == targetCell){
+            if(ALLOWED_CELLS.includes(gameBoard[index].textContent)){
                 let arrayToSend = pathArray.slice()
                 arrayToSend.push(index)
                 let newPathMark = buildPath(arrayToSend)
@@ -158,22 +184,25 @@ function updateGameBoardDisplay() {
 
 function handleGameOver(){
     isEnd = true;
-    //boardSizeInput.disabled = false;
-    startButton.disabled = false;
-    startButton.hidden = false;
-    resetPositions();
     updateGameBoardDisplay();
 }
 
 function updateGame() {
     turn++
     // Check if the current player has reached the target
-    if (p1Position === targetCell || p2Position === targetCell) {
-        console.log("Is p1 winner: "+p1Position === targetCell)
-        console.log("Is p2 winner: "+p2Position === targetCell)
+    if (player1.position === targetCell || player2.position === targetCell) {
+        console.log("Is p1 winner: "+player1.position === targetCell)
+        console.log("Is p2 winner: "+player2.position === targetCell)
         // Player has reached the target
-        statusDisplay.textContent = `Player ${currentPlayer} wins this round!`;
-        alert(`Player ${currentPlayer} wins!`);
+        let winner = currentPlayer;
+        if (player1.points>player2.points) {
+            winner = 1
+        }
+        if (player1.points<player2.points) {
+            winner = 2
+        }
+        statusDisplay.textContent = `Player ${winner} wins this round!`;
+        alert(`Player ${winner} wins!`);
         handleGameOver();
         // Update the game board to make two cells unreachable
     } else {
@@ -182,25 +211,27 @@ function updateGame() {
         updateGameBoardDisplay();
         // Switch the current player foar the next round
         currentPlayer = currentPlayer === 1 ? 2 : 1
-        statusDisplay.textContent = `Player ${currentPlayer}'s turn`;
+        statusDisplay.textContent = `Player ${currentPlayer} turns`;
         if (currentPlayer === 1)
         {
-            buildPath([p1Position])
+            buildPath([player1.position])
         }
         else
         {
-            buildPath([p2Position])
+            buildPath([player2.position])
         }
-        for (let index = 1; index < globalPathArray.length-1; index++) {
-            if (currentPlayer === 1)
-            {   
-                gameBoard[globalPathArray[index]].style.backgroundColor = "#5d8fc4";
+        if(turn>1){
+            for (let index = 1; index < globalPathArray.length-1; index++) {
+                if (currentPlayer === 1)
+                {   
+                    gameBoard[globalPathArray[index]].style.backgroundColor = "#5d8fc4";
+                }
+                else 
+                {
+                    gameBoard[globalPathArray[index]].style.backgroundColor = "#f57979";
+                }
+                scanEffect(globalPathArray[index],200*index);
             }
-            else 
-            {
-                gameBoard[globalPathArray[index]].style.backgroundColor = "#f57979";
-            }
-            scanEffect(globalPathArray[index],200*index);
         }
     }
 }
@@ -223,9 +254,12 @@ function handleCellsChange() {
     if(freeCells.length < numberOfCellsToClose){
         return
     }
-    if (closedCells.length && Math.round(Math.random()*5)+1) {
-        let cellIndex  = closedCells[Math.floor(Math.random()*(closedCells.length-1))];
-        gameBoard[cellIndex].textContent = '+';
+    if (closedCells.length){
+        for (let cellIndex = 0; cellIndex < closedCells.length; cellIndex++) {
+            if (Math.round(Math.random()*10)+1 === 1){
+                gameBoard[closedCells[cellIndex]].textContent = '+';
+            }
+        }
     }
     console.log("next")
     for (let index = 0; index < numberOfCellsToClose; index++) {
@@ -238,10 +272,10 @@ function resetPositions() {
     // Reset player positions to the starting positions
     targetCell = Math.floor(gameBoard.length/2)
     gameBoard[targetCell].textContent = 'F';
-    p1Position =  0;
-    gameBoard[p1Position].textContent = 1;
-    p2Position = gameBoard.length-1;
-    gameBoard[p2Position].textContent = 2;
+    player1.position =  0;
+    gameBoard[player1.position].textContent = 1;
+    player2.position = gameBoard.length-1;
+    gameBoard[player2.position].textContent = 2;
 
 }
 
@@ -250,7 +284,7 @@ function handleClick(cellIndex){
         alert("The game has ended");
         return
     }
-    let playerPositon = currentPlayer === 1 ? p1Position : p2Position;
+    let playerPositon = currentPlayer === 1 ? player1.position : player2.position;
     if (
         playerPositon + 9 === cellIndex ||
         playerPositon - 9 === cellIndex ||
@@ -260,16 +294,19 @@ function handleClick(cellIndex){
         {
             let value = gameBoard[cellIndex].textContent;
             if (ALLOWED_CELLS.includes(value)){
+                if(value === '+'){
+                    handleBonus(cellIndex)
+                }
                 gameBoard[cellIndex].textContent = currentPlayer;
                 if(currentPlayer === 1){
-                    gameBoard[p1Position].textContent= 0
-                    p1Position = cellIndex
-                    gameBoard[p1Position].textContent = 1
+                    gameBoard[player1.position].textContent= 0
+                    player1.position = cellIndex
+                    gameBoard[player1.position].textContent = 1
                 }
                 else{
-                    gameBoard[p2Position].textContent = 0
-                    p2Position = cellIndex
-                    gameBoard[p2Position].textContent = 2
+                    gameBoard[player2.position].textContent = 0
+                    player2.position = cellIndex
+                    gameBoard[player2.position].textContent = 2
                 }
                 updateGame();
                 
@@ -291,7 +328,7 @@ function startGame() {
     // Set the board size to the user's choice
     boardSize = newSize;*/
     // Update the status display
-    statusDisplay.textContent = `Player ${currentPlayer}'s turn`;
+    statusDisplay.textContent = `Player ${currentPlayer} turns`;
     createGameGrid()
     resetPositions()
     updateGameBoardDisplay()
@@ -299,8 +336,8 @@ function startGame() {
     /*boardSizeInput.disabled = true;
     startButton.disabled = true;*/
     isEnd = false;
-    startButton.textContent = "Restart";
     startButton.hidden = true;
+    startButton.textContent = "Restart";
 }
 
 startButton.addEventListener("click", startGame);
